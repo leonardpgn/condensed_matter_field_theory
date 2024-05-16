@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import math
 
 
 class XYmodel:
@@ -7,6 +8,7 @@ class XYmodel:
         self.dimension = n
         self.configuration = np.zeros((self.dimension, self.dimension))
         self.vortices = []
+        self.energy0 = - 2 * (self.dimension - 1) ** 2
 
     def reset_configuration(self):
         self.vortices = []
@@ -50,7 +52,34 @@ class XYmodel:
         ax.quiver(*self.quiver_data(), pivot="middle")
         fig.savefig(f'plots/plot_{self.dimension}dim_{len(self.vortices)}vortices')
 
+    def compute_energy(self):
+        energy = 0
+        for x_pos in range(self.dimension - 1):
+            for y_pos in range(self.dimension - 1):
+                energy -= np.cos(self.configuration[x_pos, y_pos] - self.configuration[x_pos + 1, y_pos])
+                energy -= np.cos(self.configuration[x_pos, y_pos] - self.configuration[x_pos, y_pos + 1])
 
-model = XYmodel(20)
-model.place_vortex(5.5, 5.5, 2)
-model.plot()
+        return energy
+
+
+system_sizes = np.arange(2, 200, 2)
+energies = []
+
+for run, n in enumerate(system_sizes):
+    model = XYmodel(n)
+    model.place_vortex(math.floor(n/2) + .5, math.floor(n/2) + .5, 1)
+    energies.append(model.compute_energy() - model.energy0)
+    if run % 50 == 0:
+        print(f"{run} / {len(system_sizes)}")
+
+fig, ax = plt.subplots(dpi=500)
+ax.plot(system_sizes, energies, label=r"One Vortex energy $E_1 - E_0$", alpha=.5)
+ax.set(
+    xlabel=r"System size $N$",
+    xscale="log"
+)
+ax.legend(loc="upper left")
+
+fig.tight_layout()
+fig.savefig('plots/single_vortex_energies')
+
