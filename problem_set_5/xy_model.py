@@ -22,11 +22,11 @@ class XYmodel:
         self.vortices.append([x0, y0, winding_number])
         for x_pos in range(self.dimension):
             for y_pos in range(self.dimension):
-                theta = winding_number * np.arctan((y_pos - y0) / (x_pos - x0))
+                theta = np.arctan((y_pos - y0) / (x_pos - x0))
                 if x_pos - x0 >= 0:
-                    self.configuration[y_pos, x_pos] = theta
+                    self.configuration[y_pos, x_pos] += winding_number * theta
                 else:
-                    self.configuration[y_pos, x_pos] = theta + np.pi
+                    self.configuration[y_pos, x_pos] += winding_number * (theta + np.pi)
 
     def quiver_data(self):
         x, y = np.arange(self.dimension), np.arange(self.dimension)
@@ -39,7 +39,7 @@ class XYmodel:
 
         return x, y, u, v
 
-    def plot(self):
+    def plot(self, name=None):
         fig, ax = plt.subplots(dpi=500, figsize=(10, 10))
         ax.set(
             xticks=(0, self.dimension - 1),
@@ -49,7 +49,10 @@ class XYmodel:
             title=f"{self.dimension} x {self.dimension} square lattice; {len(self.vortices)} vortices"
         )
         ax.quiver(*self.quiver_data(), pivot="middle")
-        fig.savefig(f'plots/plot_{self.dimension}dim_{len(self.vortices)}vortices')
+        if name is not None:
+            fig.savefig(f'plots/{name}')
+        else:
+            fig.savefig(f'plots/plot_{self.dimension}dim_{len(self.vortices)}vortices')
 
     def compute_energy(self):
         energy = 0
