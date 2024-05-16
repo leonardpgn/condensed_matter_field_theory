@@ -13,6 +13,11 @@ class XYmodel:
         self.configuration = np.zeros((self.dimension, self.dimension))
 
     def place_vortex(self, x0, y0, winding_number=1):
+        if x0 % 1 != .5 or y0 % 1 != .5:
+            raise ValueError("vortex must be placed at center of plaquette!")
+        if winding_number % 1 != 0:
+            raise ValueError("Winding number must be integer!")
+
         self.vortices.append([x0, y0, winding_number])
         for x_pos in range(self.dimension):
             for y_pos in range(self.dimension):
@@ -34,12 +39,18 @@ class XYmodel:
         return x, y, u, v
 
     def plot(self):
-        fig, ax = plt.subplots(dpi=500)
+        fig, ax = plt.subplots(dpi=500, figsize=(10, 10))
+        ax.set(
+            xticks=(0, self.dimension - 1),
+            yticks=(0, self.dimension - 1),
+            xticklabels=(1, self.dimension),
+            yticklabels=(1, self.dimension),
+            title=f"{self.dimension} x {self.dimension} square lattice; {len(self.vortices)} vortices"
+        )
         ax.quiver(*self.quiver_data(), pivot="middle")
         fig.savefig(f'plots/plot_{self.dimension}dim_{len(self.vortices)}vortices')
 
 
-model = XYmodel(10)
-model.place_vortex(5.5, 5.5)
+model = XYmodel(20)
+model.place_vortex(5.5, 5.5, 2)
 model.plot()
-print(model.configuration)
